@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Zárate City FC — Marcador</title>
+<style>
+:root{--blue:#0877ff;--blue2:#00b7ff;--navy:#07111f;--white:#fff;--muted:#a9bdd3}
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:transparent;font-family:Arial,Helvetica,sans-serif}
+body{color:#fff}.stage{position:relative;width:100vw;height:100vh;background:transparent}
+.scoreboard{position:absolute;top:4vh;left:50%;transform:translateX(-50%);width:min(94vw,1100px);height:105px;display:flex;align-items:center;filter:drop-shadow(0 8px 16px rgba(0,0,0,.35))}
+.team{height:100%;display:flex;align-items:center;gap:14px;padding:0 22px;background:linear-gradient(135deg,#07111f 0%,#0d1d31 100%);border:2px solid #0c87ff}
+.team.home{width:35%;justify-content:flex-start;border-radius:18px 0 0 18px;border-right:0}
+.team.away{width:35%;justify-content:flex-end;text-align:right;border-radius:0 18px 18px 0;border-left:0}
+.crest{width:62px;height:62px;object-fit:contain;flex:0 0 62px}.team-name{font-weight:900;font-size:clamp(15px,2vw,25px);letter-spacing:.3px;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.center{height:100%;width:30%;display:flex;align-items:center;justify-content:center;position:relative;background:linear-gradient(180deg,#0b1524,#101e30);border-top:2px solid #0c87ff;border-bottom:2px solid #0c87ff}
+.score{font-size:clamp(36px,5vw,58px);font-weight:1000;letter-spacing:2px;line-height:1}.dash{margin:0 10px;color:#7f9ab5}
+.time{position:absolute;bottom:7px;left:50%;transform:translateX(-50%);font-weight:800;font-size:14px;letter-spacing:1px;color:#dcecff}
+.accent{position:absolute;top:0;left:0;width:100%;height:4px;background:linear-gradient(90deg,#006dff,#00c9ff,#006dff)}
+.control{display:none;position:absolute;inset:0;background:#09111c;color:#fff;overflow:auto;padding:22px}
+.control.visible{display:block}.panel{max-width:720px;margin:auto}.panel h1{margin:0 0 4px}.panel p{color:var(--muted);margin-top:0}.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.field{display:flex;flex-direction:column;gap:6px}.field.full{grid-column:1/-1}label{font-size:12px;color:#a9bdd3;font-weight:700}input{width:100%;padding:13px 14px;border-radius:10px;border:1px solid #29415c;background:#111e2e;color:#fff;font-size:16px;outline:none}button{padding:12px 14px;border:0;border-radius:10px;font-weight:900;cursor:pointer}.primary{background:#0877ff;color:#fff}.secondary{background:#20364e;color:#fff}.danger{background:#7b2431;color:#fff}.buttons{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}.hint{font-size:12px;color:#91a8bf;margin-top:14px;line-height:1.5}.status{margin-top:12px;padding:10px;border-radius:10px;background:#102238;color:#bfe0ff;font-size:13px}
+@media(max-width:650px){.scoreboard{height:82px}.team{padding:0 10px;gap:7px}.crest{width:44px;height:44px;flex-basis:44px}.team-name{font-size:12px}.score{font-size:35px}.time{font-size:11px}.dash{margin:0 5px}}
+</style>
+</head>
+<body>
+<div class="stage">
+  <div id="scoreboard" class="scoreboard">
+    <div class="accent"></div>
+    <div class="team home"><img id="homeCrest" class="crest" alt=""><div id="homeName" class="team-name">ZÁRATE CITY FC</div></div>
+    <div class="center"><div><span id="homeScore" class="score">0</span><span class="dash">-</span><span id="awayScore" class="score">0</span></div><div id="time" class="time">00:00</div></div>
+    <div class="team away"><div id="awayName" class="team-name">RIVAL</div><img id="awayCrest" class="crest" alt=""></div>
+  </div>
+
+  <div id="control" class="control">
+    <div class="panel">
+      <h1>⚽ ZÁRATE CITY FC — CONTROL</h1>
+      <p>Panel para modificar el marcador. Los cambios se envían al overlay conectado.</p>
+      <div class="grid">
+        <div class="field full"><label>Rival</label><input id="cAwayName" value="RIVAL"></div>
+        <div class="field"><label>Goles Zárate City</label><input id="cHomeScore" type="number" min="0" value="0"></div>
+        <div class="field"><label>Goles rival</label><input id="cAwayScore" type="number" min="0" value="0"></div>
+        <div class="field full"><label>Tiempo</label><input id="cTime" value="00:00" placeholder="45:00"></div>
+        <div class="field full"><label>Escudo rival (opcional)</label><input id="cAwayCrest" type="file" accept="image/*"></div>
+<div class="field full"><label>Escudo Zárate City FC (opcional)</label><input id="cHomeCrest" type="file" accept="image/*"></div>
+      </div>
+      <div class="buttons">
+        <button class="primary" onclick="applyState()">ACTUALIZAR MARCADOR</button>
+        <button class="secondary" onclick="quickGoal('home')">+ GOL ZÁRATE</button>
+        <button class="secondary" onclick="quickGoal('away')">+ GOL RIVAL</button>
+        <button class="secondary" onclick="resetScore()">RESET 0-0</button>
+        <button class="secondary" onclick="toggleClock()">INICIAR/PAUSAR RELOJ</button>
+        <button class="danger" onclick="clearCrest()">QUITAR ESCUDO RIVAL</button>
+      </div>
+      <div id="status" class="status">Modo control activo.</div>
+      <div class="hint">
+        Para Streamlabs, usá esta misma página en modo marcador (sin <b>?control=1</b>).
+        Para controlar desde el mismo dispositivo, abrí esta página con <b>?control=1</b>.
+        La versión incluida usa comunicación local del navegador; para controlar un overlay que está dentro de Streamlabs desde otro contexto/dispositivo necesitás un pequeño servidor de sincronización.
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+const KEY='zarate-city-scoreboard-v1';
+let state={awayName:'RIVAL',homeScore:0,awayScore:0,time:'00:00',awayCrest:'',running:false};
+let clockTimer=null;
+
+function save(){try{localStorage.setItem(KEY,JSON.stringify(state));}catch(e){}}
+function load(){try{const x=JSON.parse(localStorage.getItem(KEY));if(x)state={...state,...x};}catch(e){}}
+function render(){
+  document.getElementById('awayName').textContent=state.awayName||'RIVAL';
+  document.getElementById('homeScore').textContent=state.homeScore;
+  document.getElementById('awayScore').textContent=state.awayScore;
+  document.getElementById('time').textContent=state.time||'00:00';
+  if(state.awayCrest) document.getElementById('awayCrest').src=state.awayCrest;
+  else document.getElementById('awayCrest').removeAttribute('src');
+  // The user can replace the placeholder home crest with their uploaded Zárate City crest.
+  document.getElementById('homeCrest').src=state.homeCrest||'';
+}
+function fill(){
+  cAwayName.value=state.awayName;cHomeScore.value=state.homeScore;cAwayScore.value=state.awayScore;cTime.value=state.time;
+}
+function applyState(){
+  state.awayName=cAwayName.value.trim()||'RIVAL';
+  state.homeScore=Math.max(0,parseInt(cHomeScore.value||0));
+  state.awayScore=Math.max(0,parseInt(cAwayScore.value||0));
+  state.time=cTime.value.trim()||'00:00';
+  save();render();status.textContent='Marcador actualizado: '+state.homeScore+' - '+state.awayScore+' vs '+state.awayName;
+}
+function quickGoal(side){
+  state[side==='home'?'homeScore':'awayScore']++;
+  save();render();fill();
+}
+function resetScore(){state.homeScore=0;state.awayScore=0;save();render();fill();}
+function clearCrest(){state.awayCrest='';save();render();document.getElementById('cAwayCrest').value='';}
+function toggleClock(){
+  state.running=!state.running; save();
+  if(clockTimer)clearInterval(clockTimer);
+  if(state.running) clockTimer=setInterval(()=>{state.time=addSecond(state.time);save();render();},1000);
+}
+function addSecond(s){
+  const m=s.match(/(\d+):(\d+)/);if(!m)return s;
+  let sec=+m[1]*60 + +m[2] + 1; return String(Math.floor(sec/60)).padStart(2,'0')+':'+String(sec%60).padStart(2,'0');
+}
+document.getElementById('cHomeCrest').addEventListener('change',e=>{
+ const f=e.target.files[0];if(!f)return;
+ const r=new FileReader();r.onload=()=>{state.homeCrest=r.result;save();render();};r.readAsDataURL(f);
+});
+document.getElementById('cAwayCrest').addEventListener('change',e=>{
+ const f=e.target.files[0];if(!f)return;
+ const r=new FileReader();r.onload=()=>{state.awayCrest=r.result;save();render();};r.readAsDataURL(f);
+});
+load();render();
+const isControl=new URLSearchParams(location.search).get('control')==='1';
+if(isControl){scoreboard.style.display='none';control.classList.add('visible');fill();}
+else {control.style.display='none';}
+</script>
+</body>
+</html>
